@@ -65,6 +65,8 @@ public class ClanWars extends JavaPlugin {
         // Отключение
         getLogger().warning("Пробуем отключить плагин...");
 
+        unloadWorld("game");
+
         // Завершение
         getLogger().info("§c§lПлагин отключен.");
     }
