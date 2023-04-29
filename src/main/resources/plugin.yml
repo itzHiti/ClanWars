@@ -3,4 +3,8 @@ version: '${project.version}'
 main: kz.itzhiti.clanwars.ClanWars
 api-version: 1.16
 authors: [itzHiti]
+description: Плагин на мини-режим ClanWars.
 website: https://itzhiti.me/
+commands:
+  clanwars:
+    aliases: [cw]
