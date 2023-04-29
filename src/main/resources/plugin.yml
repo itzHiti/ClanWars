@@ -1,0 +1,6 @@
+name: ClanWars
+version: '${project.version}'
+main: kz.itzhiti.clanwars.ClanWars
+api-version: 1.16
+authors: [itzHiti]
+website: https://itzhiti.me/
