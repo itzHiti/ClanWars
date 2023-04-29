@@ -30,9 +30,12 @@ public class DeathListener implements Listener {
             }
         }
     }
+
     @EventHandler
-    public void onRespawn (PlayerRespawnEvent e) {
-        Player p = e.getPlayer();
-        p.teleport(loc);
+    public void onRespawn(PlayerRespawnEvent e) {
+        if (fight) {
+            Player p = e.getPlayer();
+            p.teleport(loc);
+        }
     }
- }
+}

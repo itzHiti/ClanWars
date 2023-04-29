@@ -33,17 +33,17 @@ public class CWCommand implements CommandExecutor {
                     break;
                 }
                 case "start": {
+                    WorldCreator worldCreator = new WorldCreator("game");
+                    Bukkit.createWorld(worldCreator);
                     if (!(p.hasPermission("clanwars.start"))) {
                         sender.sendMessage(ClanWars.getInstance().getCFG("MESSAGES.NO_PERMS"));
                         break;
                     }
                     Bukkit.broadcastMessage(ClanWars.getInstance().getCFG("MESSAGES.GAME_START"));
                     Bukkit.getScheduler().cancelTasks(ClanWars.getInstance());
-                    WorldCreator worldCreator = new WorldCreator("game");
                     Bukkit.getScheduler().runTaskLater(ClanWars.getInstance(), () -> {
                         Bukkit.broadcastMessage(ClanWars.getInstance().getCFG("MESSAGES.GAME_START_5_SECONDS"));
-                        Bukkit.createWorld(worldCreator);
-                    }, 20L * 5);
+                    }, 20L * 25);
                     Bukkit.getScheduler().runTaskLater(ClanWars.getInstance(), () -> {
                         WorldBorder border = Bukkit.getWorld("game").getWorldBorder();
                         Bukkit.getScheduler().runTaskLater(ClanWars.getInstance(), () -> {
@@ -53,8 +53,9 @@ public class CWCommand implements CommandExecutor {
                                 int z = (int) (Math.random() * 2000) - 1000;
                                 int y = pls.getWorld().getHighestBlockYAt(x, z);
                                 Location location = new Location(Bukkit.getWorld("game"), x, y, z);
+                                pls.setBedSpawnLocation(location, true);
                                 pls.teleport(location);
-                                pls.sendTitle(getInstance().colorMaker("&c&lИгра началась"), getInstance().colorMaker("&eЦель: успеть развиться за 30 минут."), 3, 10, 5);
+                                pls.sendTitle(getInstance().colorMaker("&c&lИгра началась"), getInstance().colorMaker("&eЦель: успеть развиться за 30 минут."), 5, 20, 5);
                                 Bukkit.getScheduler().runTaskLater(ClanWars.getInstance(), () -> {
                                     falldamage = false;
                                 }, 20L * 5);
@@ -68,7 +69,7 @@ public class CWCommand implements CommandExecutor {
                         pvp = true;
                         falldamage = true;
                         Bukkit.getScheduler().runTaskLater(ClanWars.getInstance(), () -> {
-
+                            Bukkit.broadcastMessage(ClanWars.getInstance().getCFG("MESSAGES.DEATHMATCH_10_SEC"));
                         }, 20L * 1790);
                         Bukkit.getScheduler().runTaskLater(ClanWars.getInstance(), () -> {
                             fight = true;
@@ -80,10 +81,9 @@ public class CWCommand implements CommandExecutor {
                                 pls.teleport(location);
                                 border.setSize(Integer.parseInt(getInstance().getCFG("CONFIG.BORDER_SIZE")));
                                 border.setSize(0, Integer.parseInt(getInstance().getCFG("CONFIG.BORDER_NARROWING_TIME")));
-                                pls.sendTitle(getInstance().colorMaker("&c&lДезматч начался"), getInstance().colorMaker("&eЦель: уничтожить вражескую команду."), 3, 10, 5);
+                                pls.sendTitle(getInstance().colorMaker("&c&lДезматч начался"), getInstance().colorMaker("&eЦель: уничтожить вражескую команду."), 5, 20, 5);
                             }
                         }, 20L * 1800);
-
                     }, 20L * 10);
                     break;
                 }
@@ -128,7 +128,7 @@ public class CWCommand implements CommandExecutor {
                         pls.teleport(location);
                         border.setSize(Integer.parseInt(getInstance().getCFG("CONFIG.BORDER_SIZE")));
                         border.setSize(0, Integer.parseInt(getInstance().getCFG("CONFIG.BORDER_NARROWING_TIME")));
-                        pls.sendTitle(getInstance().colorMaker("&c&lДезматч начался"), getInstance().colorMaker("&eЦель: уничтожить вражескую команду."), 3, 10, 5);
+                        pls.sendTitle(getInstance().colorMaker("&c&lДезматч начался"), getInstance().colorMaker("&eЦель: уничтожить вражескую команду."), 5, 20, 5);
                     }
                     break;
                 }
