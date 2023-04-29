@@ -7,6 +7,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.Team;
+import org.json.simple.JSONValue;
 
 import static kz.itzhiti.clanwars.ClanWars.*;
 
@@ -128,6 +130,34 @@ public class CWCommand implements CommandExecutor {
                         border.setSize(0, Integer.parseInt(getInstance().getCFG("CONFIG.BORDER_NARROWING_TIME")));
                         pls.sendTitle(getInstance().colorMaker("&c&lДезматч начался"), getInstance().colorMaker("&eЦель: уничтожить вражескую команду."), 3, 10, 5);
                     }
+                    break;
+                }
+                case "createteam": {
+                    if (args.length == 0) {
+                        sender.sendMessage(ClanWars.getInstance().getCFG("MESSAGES.LOWARGS"));
+                        break;
+                    }
+                    if (Bukkit.getScoreboardManager().getMainScoreboard().getTeam(args[1]) != null) {
+                        sender.sendMessage(ClanWars.getInstance().getCFG("MESSAGES.TEAM_ALREADY_EXISTS"));
+                        break;
+                    }
+                    ChatColor color = ChatColor.getByChar(ChatColor.translateAlternateColorCodes('&', "&" + args[2]).charAt(1));
+                    Team team = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam(args[1]);
+                    team.setAllowFriendlyFire(false);
+                    team.setColor(color);
+                    getInstance().saveTeams();
+                    sender.sendMessage(ClanWars.getInstance().getCFG("MESSAGES.TEAMCREATED"));
+                    break;
+                }
+                case "jointeam": {
+                    Team team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(args[1]);
+                    if (team == null) {
+                        sender.sendMessage(ClanWars.getInstance().getCFG("MESSAGES.TEAM_NOT_FOUND"));
+                        break;
+                    }
+                    team.addEntry(sender.getName());
+                    getInstance().saveTeams();
+                    sender.sendMessage(ClanWars.getInstance().getCFG("MESSAGES.JOINEDTEAM"));
                     break;
                 }
                 default: {

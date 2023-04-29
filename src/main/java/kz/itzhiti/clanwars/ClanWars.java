@@ -2,13 +2,21 @@ package kz.itzhiti.clanwars;
 
 import kz.itzhiti.clanwars.Commands.CWCommand;
 import kz.itzhiti.clanwars.Listeners.DeathListener;
+import kz.itzhiti.clanwars.Listeners.SafeTP;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Team;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClanWars extends JavaPlugin {
 
@@ -38,11 +46,15 @@ public class ClanWars extends JavaPlugin {
         // Регистрация слушателей и команд
         if (Bukkit.getPluginManager().getPlugin("TerraformGenerator") != null) {
             Bukkit.getPluginManager().registerEvents(new DeathListener(), plugin);
+            Bukkit.getPluginManager().registerEvents(new SafeTP(), plugin);
             this.getCommand("clanwars").setExecutor(new CWCommand());
         } else {
             getLogger().warning("Не могу найти плагин TerraformGenerator! Этот плагин необходим для работы плагина ClanWars.");
             Bukkit.getPluginManager().disablePlugin(this);
         }
+
+        // Загрузка команд (teams)
+        loadTeams();
 
         // Завершение
         getLogger().info("§a§lПлагин запущен и полноценно работает.");
@@ -124,4 +136,49 @@ public class ClanWars extends JavaPlugin {
 
         folder.delete();
     }
+
+    // Метод сохранения новых команд (teams) в файле (data.yml)
+    public void saveTeams() {
+        FileConfiguration cfg = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "data.yml"));
+
+        for (Team team : Bukkit.getScoreboardManager().getMainScoreboard().getTeams()) {
+            String teamName = team.getName();
+            cfg.set("TEAMS." + teamName + ".COLOR", team.getColor().name());
+
+        List<String> players = new ArrayList<>();
+        for (String playerName : team.getEntries()) {
+            players.add(playerName);
+        }
+        cfg.set("TEAMS." + teamName + ".PLAYERS", players);
+    }
+
+        try {
+            cfg.save(new File(getDataFolder(), "data.yml"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Метод загрузки команд (teams) из файла (data.yml)
+    public void loadTeams() {
+        FileConfiguration config = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "data.yml"));
+
+        if (config.contains("teams")) {
+            ConfigurationSection teamsSection = config.getConfigurationSection("teams");
+            for (String teamName : teamsSection.getKeys(false)) {
+                Team team = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam(teamName);
+                String colorString = teamsSection.getString(teamName + ".COLOR");
+                ChatColor color = ChatColor.valueOf(colorString);
+                team.setColor(color);
+
+                List<String> players = teamsSection.getStringList(teamName + ".PLAYERS");
+                for (String playerName : players) {
+                    OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+                    team.addEntry(offlinePlayer.getName());
+                }
+            }
+        }
+    }
+
 }
+
