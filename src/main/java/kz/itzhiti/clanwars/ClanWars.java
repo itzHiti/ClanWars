@@ -10,13 +10,16 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Team;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ClanWars extends JavaPlugin {
 
@@ -24,10 +27,13 @@ public class ClanWars extends JavaPlugin {
     public static FileConfiguration config;
     public static FileConfiguration playerdata;
 
+    public static int aliveTeamCount = 0;
+    public static String aliveTeamName = null;
     public static boolean fight;
     public static boolean pvp;
     public static boolean falldamage;
     public static boolean game;
+    public static Objective alivePlayers;
 
     @Override
     public void onEnable() {
@@ -44,20 +50,56 @@ public class ClanWars extends JavaPlugin {
         game = false;
 
         // Регистрация слушателей и команд
-        if (Bukkit.getPluginManager().getPlugin("TerraformGenerator") != null) {
-            Bukkit.getPluginManager().registerEvents(new DeathListener(), plugin);
-            Bukkit.getPluginManager().registerEvents(new SafeTP(), plugin);
-            this.getCommand("clanwars").setExecutor(new CWCommand());
-        } else {
-            getLogger().warning("Не могу найти плагин TerraformGenerator! Этот плагин необходим для работы плагина ClanWars.");
-            Bukkit.getPluginManager().disablePlugin(this);
-        }
+
+        Bukkit.getPluginManager().registerEvents(new DeathListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new SafeTP(), plugin);
+        this.getCommand("clanwars").setExecutor(new CWCommand());
 
         // Загрузка команд (teams)
         loadTeams();
 
         // Завершение
         getLogger().info("§a§lПлагин запущен и полноценно работает.");
+        if (Bukkit.getScoreboardManager().getMainScoreboard().getObjective("AlivePlayers") != null) {
+            alivePlayers = Bukkit.getScoreboardManager().getMainScoreboard().getObjective("AlivePlayers");
+        }
+        else {
+            alivePlayers = Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective("AlivePlayers", "dummy", "Alive Players");
+        }
+        Bukkit.getScheduler().runTaskTimer(getInstance(), () -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                for (Team team : Bukkit.getScoreboardManager().getMainScoreboard().getTeams()) {
+                    Set<String> players = team.getEntries();
+                    if (player.isDead()) {
+                        Bukkit.getScoreboardManager().getMainScoreboard().getObjective("AlivePlayers").getScore(player.getName()).setScore(0);
+                    } else {
+                        int count = 0;
+                        for (String ps : players) {
+                            Player p = Bukkit.getPlayer(ps);
+                            if (!p.isDead()) {
+                                count++;
+                            }
+                        }
+                        Bukkit.getScoreboardManager().getMainScoreboard().getObjective("AlivePlayers").getScore(team.getName()).setScore(count);
+                    }
+                }
+            }
+        }, 0L, 1L);
+
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (Team team : Bukkit.getScoreboardManager().getMainScoreboard().getTeams()) {
+                String teamName = team.getName();
+                int count = Bukkit.getScoreboardManager().getMainScoreboard().getObjective("AlivePlayers").getScore(teamName).getScore();
+                if (count > 0) {
+                    aliveTeamCount++;
+                    aliveTeamName = teamName;
+                }
+            }
+            if (aliveTeamCount == 1) {
+                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "<your_command_here>");
+            }
+        }, 0L, 1L);
+
     }
 
     @Override
@@ -66,6 +108,7 @@ public class ClanWars extends JavaPlugin {
         getLogger().warning("Пробуем отключить плагин...");
 
         unloadWorld("game");
+        alivePlayers.unregister();
 
         // Завершение
         getLogger().info("§c§lПлагин отключен.");

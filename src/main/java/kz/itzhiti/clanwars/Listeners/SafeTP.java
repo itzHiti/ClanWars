@@ -20,10 +20,10 @@ public class SafeTP implements Listener {
         }
     }
     @EventHandler
-    public void onDamage (EntityDamageEvent edmg) {
+    public void onFallDamage (EntityDamageEvent e) {
         if (falldamage == true) {
-            if (edmg.getEntity() instanceof Player) {
-                edmg.setCancelled(true);
+            if (e.getEntity() instanceof Player) {
+                    e.setCancelled(true);
             }
         }
     }
